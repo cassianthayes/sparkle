@@ -23,6 +23,11 @@ services:
       ONLINE_MODE: "false"
       ENFORCE_SECURE_PROFILE: "false"
       SPAWN_PROTECTION: 0
+    healthcheck:   # default one pings without PROXY header → fails
+      test: ["CMD", "mc-monitor", "status", "--use-proxy", "--host", "localhost", "--port", "25565"]
+      interval: 10s
+      start_period: 1m
+      retries: 6
     volumes:
       - /srv/data/minecraft/2weekphase:/data
     networks: [minecraft]
