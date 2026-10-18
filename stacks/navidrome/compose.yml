@@ -1,0 +1,41 @@
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    restart: unless-stopped
+    user: "1000:100"
+    environment:
+      ND_BACKUP_PATH: /backup
+      ND_BACKUP_COUNT: 7
+    volumes:
+      - /srv/data/navidrome/data:/data
+      - /srv/data/navidrome/backup:/backup
+      - /srv/data/navidrome/music:/music:ro
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.navidrome.rule=Host(`music.cssnt.ru`)
+      - traefik.http.routers.navidrome.entrypoints=websecure
+      - traefik.http.routers.navidrome.tls.certresolver=le
+      - traefik.http.services.navidrome.loadbalancer.server.port=4533
+
+  upload:
+    image: rclone/rclone:1
+    container_name: navidrome-upload
+    restart: unless-stopped
+    user: "1000:100"
+    command: serve webdav /music --addr :8090
+    env_file: /srv/secrets/navidrome-upload.env
+    volumes:
+      - /srv/data/navidrome/music/telegram:/music
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.navidrome-upload.rule=Host(`music.cssnt.ru`) && PathPrefix(`/upload`)
+      - traefik.http.routers.navidrome-upload.entrypoints=websecure
+      - traefik.http.routers.navidrome-upload.tls.certresolver=le
+      - traefik.http.routers.navidrome-upload.middlewares=navidrome-upload-strip
+      - traefik.http.middlewares.navidrome-upload-strip.stripprefix.prefixes=/upload
+      - traefik.http.services.navidrome-upload.loadbalancer.server.port=8090
+networks:
+  proxy: { external: true }

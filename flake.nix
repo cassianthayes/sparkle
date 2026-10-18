@@ -13,6 +13,7 @@
         ./disko.nix
         ./hardware-configuration.nix
         ./host.nix
+        ./docker.nix
       ];
     };
   };
