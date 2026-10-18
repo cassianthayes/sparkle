@@ -6,7 +6,7 @@
   networking.hostName = "sparkle";
   networking.useDHCP = true;
   networking.firewall.enable = true;
-  networking.firewall.allowedTCPPorts = [ 22 80 443 ];
+  networking.firewall.allowedTCPPorts = [ 22 80 443 25565 ];
 
   time.timeZone = "Asia/Yekaterinburg";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -51,6 +51,8 @@
     "d /srv/data/remnawave 0755 cassiant users -"
     "d /srv/data/remnawave/db 0700 cassiant users -"
     "d /srv/data/remnawave/backup 0755 cassiant users -"
+    "d /srv/data/minecraft 0755 cassiant users -"
+    "d /srv/data/minecraft/2weekphase 0755 cassiant users -"
   ];
 
   environment.systemPackages = with pkgs; [ git helix btop curl rsync ];

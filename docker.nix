@@ -1,7 +1,10 @@
 { config, lib, ... }:
 let
-  stacks = [ "traefik" "navidrome" "remnawave" ];
+  stacks = [ "traefik" "navidrome" "remnawave" "mc-router" "mc-2weekphase" ];
+  networks = [ "proxy" "minecraft" ];
   docker = "${config.virtualisation.docker.package}/bin/docker";
+  netUnits = name: [ "docker-network-proxy.service" ]
+    ++ lib.optional (lib.hasPrefix "mc-" name) "docker-network-minecraft.service";
 in {
   virtualisation.docker = {
     enable = true;
@@ -10,19 +13,20 @@ in {
   };
   users.users.cassiant.extraGroups = [ "docker" ];
 
-  systemd.services = {
-    docker-network-proxy = {
+  systemd.services = lib.listToAttrs (map (net: {
+    name = "docker-network-${net}";
+    value = {
       after = [ "docker.service" ];
       requires = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
-      script = "${docker} network inspect proxy >/dev/null 2>&1 || ${docker} network create proxy";
+      script = "${docker} network inspect ${net} >/dev/null 2>&1 || ${docker} network create ${net}";
     };
-  } // lib.listToAttrs (map (name: {
+  }) networks) // lib.listToAttrs (map (name: {
     name = "stack-${name}";
     value = {
-      after = [ "docker-network-proxy.service" "network-online.target" ];
-      requires = [ "docker-network-proxy.service" ];
+      after = netUnits name ++ [ "network-online.target" ];
+      requires = netUnits name;
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       restartTriggers = [ (./stacks + "/${name}") ];

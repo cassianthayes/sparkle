@@ -1,0 +1,32 @@
+services:
+  mc-2weekphase:
+    image: itzg/minecraft-server:2026.9.2-java25
+    container_name: mc-2weekphase
+    restart: unless-stopped
+    stop_grace_period: 2m
+    stdin_open: true
+    tty: true
+    environment:
+      EULA: "TRUE"
+      TYPE: PAPER
+      VERSION: "26.3"
+      PAPER_BUILD: "205"
+      MEMORY: 4G
+      USE_AIKAR_FLAGS: "true"
+      UID: 1000
+      GID: 100
+      TZ: Asia/Yekaterinburg
+      # server.properties (unset = kept from file)
+      MOTD: '§dсамые смешные мемы§r\n§e>> двухнедельная фаза'
+      DIFFICULTY: normal
+      MAX_PLAYERS: 100
+      ONLINE_MODE: "false"
+      ENFORCE_SECURE_PROFILE: "false"
+      SPAWN_PROTECTION: 0
+    volumes:
+      - /srv/data/minecraft/2weekphase:/data
+    networks: [minecraft]
+    labels:
+      mc-router.host: mc.cssnt.ru
+networks:
+  minecraft: { external: true }
