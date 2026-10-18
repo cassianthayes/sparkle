@@ -3,6 +3,7 @@ services:
     image: itzg/mc-router:1.48.0
     container_name: mc-router
     restart: unless-stopped
+    group_add: ["131"]   # host docker group (NixOS fixed gid) → socket access
     environment:
       IN_DOCKER: "true"
       USE_PROXY_PROTOCOL: "true"
