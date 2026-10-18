@@ -1,0 +1,87 @@
+x-common: &common
+  restart: unless-stopped
+  ulimits:
+    nofile: { soft: 1048576, hard: 1048576 }
+
+services:
+  remnawave:
+    <<: *common
+    image: remnawave/backend:3.4.5
+    container_name: remnawave
+    hostname: remnawave
+    env_file: /srv/secrets/remnawave.env
+    volumes:
+      - valkey-socket:/var/run/valkey
+    networks: [remnawave, proxy]
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3001/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      remnawave-db: { condition: service_healthy }
+      remnawave-redis: { condition: service_healthy }
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.remnawave.rule=Host(`rw.cssnt.ru`)
+      - traefik.http.routers.remnawave.entrypoints=websecure
+      - traefik.http.routers.remnawave.tls.certresolver=le
+      - traefik.http.services.remnawave.loadbalancer.server.port=3000
+
+  remnawave-db:
+    <<: *common
+    image: postgres:18.4
+    container_name: remnawave-db
+    hostname: remnawave-db
+    user: "1000:100"
+    shm_size: 512mb
+    env_file: /srv/secrets/remnawave.env
+    environment:
+      TZ: UTC   # must stay UTC
+    volumes:
+      - /srv/data/remnawave/db:/var/lib/postgresql
+    networks: [remnawave]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 3s
+      timeout: 10s
+      retries: 3
+
+  remnawave-redis:
+    <<: *common
+    image: valkey/valkey:9-alpine
+    container_name: remnawave-redis
+    hostname: remnawave-redis
+    command: >
+      valkey-server --save "" --appendonly no --maxmemory-policy noeviction
+      --loglevel warning --unixsocket /var/run/valkey/valkey.sock --unixsocketperm 777 --port 0
+    volumes:
+      - valkey-socket:/var/run/valkey
+    networks: [remnawave]
+    healthcheck:
+      test: ['CMD', 'valkey-cli', '-s', '/var/run/valkey/valkey.sock', 'ping']
+      interval: 3s
+      timeout: 3s
+      retries: 3
+
+  remnawave-subscription-page:
+    <<: *common
+    image: remnawave/subscription-page:8.0.0
+    container_name: remnawave-subscription-page
+    hostname: remnawave-subscription-page
+    env_file: /srv/secrets/remnawave-sub.env
+    networks: [remnawave, proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.remnawave-sub.rule=Host(`connect.cssnt.ru`)
+      - traefik.http.routers.remnawave-sub.entrypoints=websecure
+      - traefik.http.routers.remnawave-sub.tls.certresolver=le
+      - traefik.http.services.remnawave-sub.loadbalancer.server.port=3010
+
+volumes:
+  valkey-socket: {}   # socket only, no state
+
+networks:
+  remnawave: { internal: true }
+  proxy: { external: true }

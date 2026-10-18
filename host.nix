@@ -48,6 +48,9 @@
     "d /srv/data/navidrome/backup 0755 cassiant users -"
     "d /srv/data/navidrome/music 0755 cassiant users -"
     "d /srv/data/navidrome/music/telegram 0755 cassiant users -"
+    "d /srv/data/remnawave 0755 cassiant users -"
+    "d /srv/data/remnawave/db 0700 cassiant users -"
+    "d /srv/data/remnawave/backup 0755 cassiant users -"
   ];
 
   environment.systemPackages = with pkgs; [ git helix btop curl rsync ];

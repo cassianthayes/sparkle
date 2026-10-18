@@ -1,6 +1,6 @@
 { config, lib, ... }:
 let
-  stacks = [ "traefik" "navidrome" ];
+  stacks = [ "traefik" "navidrome" "remnawave" ];
   docker = "${config.virtualisation.docker.package}/bin/docker";
 in {
   virtualisation.docker = {
