@@ -3,8 +3,10 @@ services:
     image: traefik:v3
     container_name: traefik
     restart: unless-stopped
+    depends_on: [traefik-socket-proxy]
     command:
       - --providers.docker=true
+      - --providers.docker.endpoint=tcp://traefik-socket-proxy:2375
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=proxy
       - --entrypoints.web.address=:80
@@ -16,8 +18,19 @@ services:
       - --certificatesresolvers.le.acme.storage=/acme/acme.json
     ports: ["80:80", "443:443"]
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /srv/data/traefik:/acme
-    networks: [proxy]
+    networks: [proxy, socket]
+
+  traefik-socket-proxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:v0.5.0
+    container_name: traefik-socket-proxy
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [socket]
+
 networks:
   proxy: { external: true }
+  socket: { internal: true }

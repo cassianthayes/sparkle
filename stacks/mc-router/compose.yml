@@ -3,13 +3,25 @@ services:
     image: itzg/mc-router:1.48.0
     container_name: mc-router
     restart: unless-stopped
-    group_add: ["131"]   # host docker group (NixOS fixed gid) → socket access
+    depends_on: [mc-router-socket-proxy]
     environment:
       IN_DOCKER: "true"
+      DOCKER_SOCKET: tcp://mc-router-socket-proxy:2375
       USE_PROXY_PROTOCOL: "true"
     ports: ["25565:25565"]
+    networks: [minecraft, socket]
+
+  mc-router-socket-proxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:v0.5.0
+    container_name: mc-router-socket-proxy
+    restart: unless-stopped
+    environment:
+      CONTAINERS: 1
+      NETWORKS: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks: [minecraft]
+    networks: [socket]
+
 networks:
   minecraft: { external: true }
+  socket: { internal: true }
