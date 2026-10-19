@@ -127,5 +127,3 @@ Done (all applied + verified 2026-10-19, user confirmed):
 
 Open:
 - Navidrome DB on titan (accounts/playlists/favorites) — migrate or drop? Then shut titan down.
-
-Next (candidates): CrowdSec/fail2ban (+ Traefik access logs), sops-nix, `system.autoUpgrade` + image update flow, automatic + off-site backups (not gdrive yet).
