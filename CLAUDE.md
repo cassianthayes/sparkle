@@ -1,6 +1,6 @@
 # sparkle — homelab server (NixOS flake + Docker Compose stacks)
 
-This repo = the whole server config. Clone on PC: `~/Desktop/sparkle/config`. On server: `/srv/config`.
+This repo = the whole server config. Clone on PC: `~/Desktop/sparkle`. On server: `/srv/config`.
 Private GitHub `cassianthayes/sparkle` (server pulls via deploy key).
 
 ## How we work (teamwork)
